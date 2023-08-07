@@ -11,6 +11,8 @@ services:
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention=${PROMETHEUS_RETENTION:-24h}
     restart: always
+    ports:
+      - 9090:9090
     networks:
       - monitor-net
   node-exporter:
@@ -29,7 +31,6 @@ services:
       - 3000:3000
     networks:
       - monitor-net
-
 
 networks:
   monitor-net:
