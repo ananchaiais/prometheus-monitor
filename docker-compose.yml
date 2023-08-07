@@ -15,9 +15,11 @@ services:
       - 9090:9090
     networks:
       - monitor-net
-  node-exporter:
-    container_name: monitor-node-exporter
+  master-exporter:
+    container_name: master-node-exporter
     image: prom/node-exporter:latest
+    ports:
+      - 9100:9100
     networks:
       - monitor-net
   grafana:
