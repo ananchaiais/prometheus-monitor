@@ -52,8 +52,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./grafana_data:/var/lib/grafana
-    command:
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|var)($$|/)'
     depends_on:
       - prometheus
     ports:
