@@ -1,27 +1,51 @@
 version: '3'
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data: {}
+
 services:
   prometheus:
-    container_name: monitor-prometheus
     image: prom/prometheus:latest
+    container_name: monitor-prometheus    
+    restart: unless-stopped
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus_data:/prometheus
     command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention=${PROMETHEUS_RETENTION:-24h}
-    restart: always
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=${PROMETHEUS_RETENTION:-90d}'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    expose:
+      - 9090
     ports:
       - 9090:9090
     networks:
-      - monitor-net
-  master-exporter:
-    container_name: master-node-exporter
+      - monitoring
+  node-exporter:
     image: prom/node-exporter:latest
+    container_name: monitor-node-exporter    
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - 9100
     ports:
       - 9100:9100
     networks:
-      - monitor-net
+      - monitoring
   grafana:
     container_name: monitor-grafana
     image: grafana/grafana:latest
@@ -32,8 +56,4 @@ services:
     ports:
       - 3000:3000
     networks:
-      - monitor-net
-
-networks:
-  monitor-net:
-    driver: bridge
+      - monitoring
